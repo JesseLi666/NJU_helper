@@ -3,7 +3,8 @@ import hashlib
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask import current_app, request
 from flask_login import UserMixin, AnonymousUserMixin
-from . import db, login_manager
+from . import db\
+    # , login_manager
 
 class User(UserMixin, db.Model):
     __table__name = 'users'

@@ -12,12 +12,15 @@ class jw_spider:
             'User-Agent': 'Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.118 Safari/537.36'}
         self.total_grade_all = 0
         self.total_weight_all = 0
-        self.age=16
+        self.age=15
+        self.base_url=''
 
+    def set_age(self, age):
+        self.age = age
 
     def login(self, login_data):
-        base_url = current_app.config['JW_BASE_URL'][self.site]
-        self.loginUrl = base_url + 'login.do'
+        self.base_url = current_app.config['JW_BASE_URL'][self.site]
+        self.loginUrl = self.base_url + 'login.do'
         try:
             login_result = jws.post(self.loginUrl, data=login_data, headers=self.header)
             headers_res = dict(login_result.headers.items())
@@ -27,11 +30,19 @@ class jw_spider:
         except:
             return '连接失败'
 
+    def logout(self):
+        self.base_url = current_app.config['JW_BASE_URL'][self.site]
+        self.logoutUrl = self.base_url + 'exit.do?type=student'
+        try:
+            login_result = jws.post(self.logoutUrl)
+            return
+        except:
+            abort(500)
 
     def get_grade(self, age=16, term=1):
-        base_url = current_app.config['JW_BASE_URL'][self.site]
+        self.base_url = current_app.config['JW_BASE_URL'][self.site]
         term_tmp = term
-        self.gradeUrl = base_url + 'student/studentinfo/achievementinfo.do?method=searchTermList'
+        self.gradeUrl = self.base_url + 'student/studentinfo/achievementinfo.do?method=searchTermList'
         while term_tmp - 2 > 0:
             age += 1
             term_tmp -= 2

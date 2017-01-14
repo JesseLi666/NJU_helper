@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}成绩查询{% endblock %}
+
+{% block page_content %}
+    <div class="page-header">
+        <h1>Hello!</h1>
+{#        <h4>{{ test }}</h4>#}
+{#        <h4>{{ term_now }}</h4>#}
+    </div>
+    <div class="row">
+		<div class="col-md-2">
+            <div class="hidden-xs hidden-sm">
+                <ul class="nav nav-pills nav-stacked" role="navigation" >
+                    {% for term in range(1, terms + 1) %}
+                        <li {% if term == term_now %}class="active"{% endif %}><a href="{{ url_for('helper.get_grade', term=term) }}">{{ term }}</a></li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <div class="visible-xs-block visible-sm-block">
+                <ul class="pagination" role="navigation" >
+                    {% for term in range(1, terms + 1) %}
+                        <li {% if term == term_now %}class="active"{% endif %}><a href="{{ url_for('helper.get_grade', term=term) }}">{{ term }}</a></li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+		</div>
+		<div class="col-md-10">
+			<table class="table table-hover">
+                    <tr>
+                        <td align="center">课程名称</td>
+                        <td align="center">课程类型</td>
+                        <td align="center">学分</td>
+                        <td align="center">成绩</td>
+                    </tr>
+                {% for c in range(0,cnt) %}
+                    <tr>
+                        <td align="center">{{ grades[0][c] }}</td>
+                        <td align="center">{{ grades[1][c] }}</td>
+                        <td align="center">{{ grades[2][c] }}</td>
+                        <td align="center">{{ grades[3][c] }}</td>
+                    </tr>
+                {% endfor %}
+            </table>
+		</div>
+	</div>
+{% endblock %}
