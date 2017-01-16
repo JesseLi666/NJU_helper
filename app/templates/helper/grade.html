@@ -5,15 +5,13 @@
 {% block page_content %}
     <div class="page-header">
         <h1>Hello!</h1>
-{#        <h4>{{ test }}</h4>#}
-{#        <h4>{{ term_now }}</h4>#}
     </div>
     <div class="row">
 		<div class="col-md-2">
             <div class="hidden-xs hidden-sm">
                 <ul class="nav nav-pills nav-stacked" role="navigation" >
                     {% for term in range(1, terms + 1) %}
-                        <li {% if term == term_now %}class="active"{% endif %}><a href="{{ url_for('helper.get_grade', term=term) }}">{{ term }}</a></li>
+                        <li {% if term == term_now %}class="active"{% endif %}><a href="{{ url_for('helper.get_grade', term=term, num=current_user.user_number) }}">{{ term }}</a></li>
                     {% endfor %}
                 </ul>
             </div>
@@ -21,7 +19,7 @@
             <div class="visible-xs-block visible-sm-block">
                 <ul class="pagination" role="navigation" >
                     {% for term in range(1, terms + 1) %}
-                        <li {% if term == term_now %}class="active"{% endif %}><a href="{{ url_for('helper.get_grade', term=term) }}">{{ term }}</a></li>
+                        <li {% if term == term_now %}class="active"{% endif %}><a href="{{ url_for('helper.get_grade', term=term, num=current_user.user_number) }}">{{ term }}</a></li>
                     {% endfor %}
                 </ul>
             </div>

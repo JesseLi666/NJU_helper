@@ -1,18 +1,19 @@
-import requests
+import requests, re
 from requests.structures import CaseInsensitiveDict
 from bs4 import BeautifulSoup
 from flask import current_app, abort
 
-jws = requests.Session()
+
 
 class jw_spider:
-    def __init__(self, site):
-        self.site=site
+    def __init__(self):
+        self.site=0
         self.header = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.118 Safari/537.36'}
         self.total_grade_all = 0
         self.total_weight_all = 0
-        self.age=15
+        self.age=16
+        self.jws = requests.Session()
         self.base_url=''
 
     def set_age(self, age):
@@ -22,9 +23,9 @@ class jw_spider:
         self.base_url = current_app.config['JW_BASE_URL'][self.site]
         self.loginUrl = self.base_url + 'login.do'
         try:
-            login_result = jws.post(self.loginUrl, data=login_data, headers=self.header)
+            login_result = self.jws.post(self.loginUrl, data=login_data, headers=self.header)
             headers_res = dict(login_result.headers.items())
-            if not headers_res.get('Set-Cookie'):
+            if not headers_res.get('Pragma'):
                 return '用户名或密码错误'
             return 'success'
         except:
@@ -34,7 +35,7 @@ class jw_spider:
         self.base_url = current_app.config['JW_BASE_URL'][self.site]
         self.logoutUrl = self.base_url + 'exit.do?type=student'
         try:
-            login_result = jws.post(self.logoutUrl)
+            login_result = self.jws.post(self.logoutUrl)
             return
         except:
             abort(500)
@@ -51,7 +52,7 @@ class jw_spider:
         # grade_request = urllib.request.Request( url = self.gradeUrl, data = post_grade_data.encode('utf-8') )
         # grade_result = self.opener.open(grade_request)
         post_grade_data = {'termCode': term_str}
-        grade_result = jws.post(self.gradeUrl, data=post_grade_data, headers=self.header)
+        grade_result = self.jws.post(self.gradeUrl, data=post_grade_data, headers=self.header)
         mygradepage = grade_result.content.decode('utf-8')
         soup = BeautifulSoup(mygradepage, 'lxml')
         trs = soup.find_all('tr', class_=['TABLE_TR_02', 'TABLE_TR_01'])
@@ -67,12 +68,20 @@ class jw_spider:
                 tds[j2] = tds[j2].get_text().strip()
             # for td in tds:
             # td = td.get_text().strip()
-            lesson_names.append(self.alignment(str(tds[2]), 30))
+            lesson_names.append(str(tds[2]))
             lesson_type.append(tds[4])
-            tds[5] = int(float(tds[5]))
+            tds[5] = re.sub("[^\d.]", "", tds[5])
+            try:
+                tds[5] = int(float(tds[5]))
+            except:
+                tds[5] = 0
             lesson_weights.append(tds[5])
             # lesson_grades.append(str(int(tds[6])))
-            tds[6] = int(float(tds[6]))
+            tds[6] = re.sub("[^\d.]", "", tds[6])
+            try:
+                tds[6] = int(float(tds[6]))
+            except:
+                tds[6] = 0
             lesson_grades.append(tds[6])
         return [lesson_names, lesson_type, lesson_weights, lesson_grades]
         # for j in range(len(trs)):

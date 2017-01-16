@@ -10,7 +10,7 @@
 		<div class="col-md-2">
 			<ul class="nav nav-pills nav-stacked" role="navigation" >
                 {% for term in range(1, terms + 1) %}
-                    <li><a href="{{ url_for('helper.get_grade', term=term) }}">{{ term }}</a></li>
+                    <li><a href="{{ url_for('helper.get_grade', term=term, num=current_user.user_number) }}">{{ term }}</a></li>
                 {% endfor %}
 
 {#				<li class="active"><a href="#">Home</a></li>#}
