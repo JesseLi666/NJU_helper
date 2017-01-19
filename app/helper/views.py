@@ -1,5 +1,5 @@
 from flask import render_template, redirect, url_for, request, abort, flash,\
-    current_app, make_response
+    current_app, make_response, jsonify
 from flask_login import login_required, current_user, login_user, logout_user
 from . import helper
 from .. import db
@@ -7,6 +7,7 @@ from ..models import User, Grade
 from .forms import JWLoginForm
 from ..decorators import jw_login_required
 from .spider import jw_spider
+import re
 
 
 @helper.route('/jw_login', methods=['GET', 'POST'])
@@ -40,7 +41,7 @@ def jw_login():
             return redirect(request.args.get('next') or url_for('helper.get_grade_start', num=user.user_number))
         else:
             flash(login_res)
-    return render_template('login.html',form=form)
+    return render_template('helper/login.html',form=form)
 
 @helper.route('/grade')
 @jw_login_required
@@ -74,3 +75,29 @@ def jw_logout():
     current_user.spd.logout()
     logout_user()
     return redirect(url_for('helper.jw_login'))
+
+@helper.route('/_calculatedemo')
+def calculate():
+    a = request.args.get('number1', '0')
+    operator = request.args.get('operator', '+')
+    b = request.args.get('number2', '0')
+    m = re.match('-?\d+', a)
+    n = re.match('-?\d+', b)
+    if m is None or n is None or operator not in '+-*/':
+        return jsonify(result='I Catch a BUG!')
+    if operator == '/':
+        result = eval(a + operator + str(float(b)))
+    else:
+        result = eval(a + operator + b)
+    return jsonify(result=result)
+
+
+@helper.route('/cal_demo')
+def cal_demo():
+    return render_template('cal.html')
+
+@helper.route('/cal')
+def grade_cal():
+
+
+    return render_template('helper/cal.html')
