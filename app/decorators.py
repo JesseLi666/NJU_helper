@@ -1,5 +1,5 @@
 from functools import wraps
-from flask import current_app, abort, redirect, url_for
+from flask import current_app, abort, redirect, url_for, request
 import urllib.request
 # from .helper.spider import jws
 from flask_login import current_user
@@ -8,7 +8,7 @@ def jw_login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if not current_user.is_authenticated:
-            return redirect(url_for('helper.jw_login'))
+            return redirect(url_for('helper.jw_login', next=request.path))
         test_url = current_app.config['JW_BASE_URL'][0] + 'student/studentinfo/index.do'
         try:
             test_req = current_user.spd.jws.get(test_url, allow_redirects=False, timeout = 1).status_code
@@ -21,7 +21,7 @@ def jw_login_required(f):
             except:
                 test_req = 302
             if test_req != 200:
-                return redirect(url_for('helper.jw_login'))
+                return redirect(url_for('helper.jw_login', next=request.path))
                 pass
 
         return f(*args, **kwargs)

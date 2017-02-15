@@ -1,2 +1,76 @@
 {% extends "base.html" %}
 
+{% block title %}GPA计算器{% endblock %}
+
+{% block head %}
+    {{ super() }}
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
+{% endblock %}
+
+{% block page_content %}
+    <div class="page-header">
+        <h1>Hello!</h1>
+    </div>
+    <div class="row">
+        <table id="grade_table" class="table table-hover">
+                <tr>
+                    <td align="center">课程名称</td>
+                    <td align="center">课程类型</td>
+                    <td align="center">学分</td>
+                    <td align="center">成绩</td>
+                    <td align="center">是否计算</td>
+                </tr>
+{#                <div id="whathappened" class="whatthefuck">#}
+{#                <p>什么鬼</p>#}
+{#                </div>#}
+            {% for term in grades %}
+                <tbody id="term" class="term">
+                {% for grade in term %}
+                    <tr>
+                        <td align="center"><span id="name">{{ grade[0] }}</span></td>
+                        <td align="center"><span id="type">{{ grade[1] }}</span></td>
+                        <td align="center"><span id="weight">{{ grade[2] }}</span></td>
+                        <td align="center"><span id="grade">{{ grade[3] }}</span></td>
+                        <td align="center"><input type="checkbox" id="choose" {% if grade[1] in ['通修','平台','核心'] and grade[3] != 0%}checked{% endif %}></td>
+                    </tr>
+
+                {% endfor %}
+                </tbody>
+            {% endfor %}
+                <tbody id="new_courses">
+
+                </tbody>
+        </table>
+	</div>
+
+    <div class="add_item center">
+            学分<input type="text" id="add_weight" size="3" class="btnImg"></input>
+            成绩<input type="text" id="add_grade" size="3" class="btnImg"></input>
+            <button type="button" id="add_do" class="btn btn-default btnImg">新增一门课程</button>
+    </div>
+{#    <button id="SelectAll">全选</button>#}
+{#    <button id="disSelectAll">全不选</button>#}
+    <nav class="navbar navbar-default navbar-fixed-bottom" role="navigation">
+        <div class="container center">
+            <button id="checkall" class="btn btn-info">全选</button>
+            <button id="someSelect" class="btn btn-primary">必修</button>
+            <button id="invertSelect" class="btn btn-warning">反选</button>
+            <button id="resultButton" class="btn btn-success">南大算法</button>
+            <button id="resultButton2" class="btn btn-success">标准算法</button>
+        </div>
+    </nav>
+    <div class="alert alert-success">
+        <h4>使用说明：</h4>
+        <ul>点击“全选”按钮可以</ul>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <script src="{{ url_for('static', filename='js/cal.js') }}"></script>
+    <script type="text/javascript">
+    var $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+    </script>
+{% endblock %}
