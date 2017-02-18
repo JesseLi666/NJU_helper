@@ -24,11 +24,14 @@
 		}
 		.course_block_start{
 		height: 50px;
-		border: 5px #FFFFFF solid;
-		border-bottom: 0;
-		background: #CCCCFF;
 		text-align: center;
-		word-break:break-all;
+		position: relative;
+		font-family: 微软雅黑, serif;
+		color: #ffffff;
+			border-bottom: 0;
+			border-top: 2px #ffffff solid;
+			border-left: 2px #ffffff solid;
+			border-right: 2px #ffffff solid;
 		}
         .course_block_empty{
 		height: 50px;
@@ -46,6 +49,9 @@
             text-align: center;
 			position: relative;
 			font-family: 微软雅黑, serif;
+			color: #ffffff;
+			margin:0 0 0 -1px;
+			/*margin:2px 2px 2px 2px;*/
         }
 		.course_time{
 		height: 50px;

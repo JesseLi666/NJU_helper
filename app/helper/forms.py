@@ -1,5 +1,5 @@
 from flask_wtf.form import FlaskForm
-from wtforms import StringField, PasswordField, BooleanField, SubmitField, SelectField, RadioField
+from wtforms import StringField, PasswordField, BooleanField, SubmitField, SelectField, RadioField, TextAreaField
 from wtforms.validators import Required, Length, EqualTo, Regexp
 from wtforms import ValidationError
 
@@ -16,7 +16,9 @@ class wechat_JWLoginForm(FlaskForm):
     rem_wechat = BooleanField('将教务系统账号与我的微信绑定')
     submit = SubmitField('登陆')
 
-
+class suggestForm(FlaskForm):
+    suggestion = TextAreaField('您的问题或建议', validators=[Required()])
+    submit = SubmitField('提交')
 
 
 

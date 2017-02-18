@@ -106,6 +106,28 @@
             </tr>
         </table>
     </div>
+    <div>
+        {% if courses_except != [] %}
+            <p>您有一些课程转换到课表失败：</p>
+        <table class="table">
+            <thead>
+                <tr>
+                  <td align="center">课程名称</td>
+                  <td align="center">教师</td>
+                  <td align="center">时间及地点</td>
+                </tr>
+            </thead>
+            {% for tt in courses_except %}
+                <tr class="course_except">
+                    <td align="center">{{ tt[0] }}</td>
+                    <td align="center">{{ tt[1] }}</td>
+                    <td align="center">{{ tt[2] }}</td>
+                    <td style="display:none">{{ tt[3] }}</td>
+                </tr>
+            {% endfor %}
+        </table>
+        {% endif %}
+    </div>
 <div id="myModal" class="modal fade bs-example-modal-sm" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel">
   <div class="modal-dialog modal-sm" role="document" >
     <div class="modal-content">
@@ -134,8 +156,8 @@
     var courses = {{ courses|tojson|safe }};
     </script>
     <script>
-    var patt1 = new RegExp("course[0-9]+");
-    var patt2 = new RegExp("[0-9]+");
+{#    var patt1 = new RegExp("course[0-9]+");#}
+{#    var patt2 = new RegExp("[0-9]+");#}
     var patt3 = new RegExp("morning");
     var patt4 = new RegExp("afternoon");
     $(document).ready(function () {
@@ -169,6 +191,13 @@
 
             $('#myModal').modal('show');
 		});
+        $('tr.course_except').click(function () {
+            $('.modal-title').text('课程详情');
+            $('div.modal-body').remove();
+            index = $(this).children().last().text();
+            $('div.modal-footer').before('<div class="modal-body">'+'<p>课程编号: '+message[index][3]+'<br>课程名称: '+message[index][0]+'<br>教师: '+message[index][1]+'<br>选课类型: '+message[index][4]+'<br>校区: '+message[index][5]+'<br>上课地点及时间: <br>'+message[index][2]+'</p>'+'</div>');
+            $('#myModal').modal('show');
+        })
     })
     </script>
 {% endblock %}

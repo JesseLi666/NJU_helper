@@ -14,7 +14,16 @@ class Config:
     APP_SECRET =  os.environ.get('APP_SECRET')
     TOKEN =  os.environ.get('TOKEN')
     PASSWORD_SECRET_KEY =  os.environ.get('PASSWORD_SECRET_KEY')
-
+    MAIL_SERVER = 'smtp.163.com'
+    MAIL_PORT = 587
+    MAIL_USE_TLS = False
+    MAIL_USE_SSL = True
+    MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
+    SEND_MAIL_TO = 'njuexciting@163.com'
+    FLASKY_MAIL_SUBJECT_PREFIX = '[Flasky]'
+    FLASKY_MAIL_SENDER = 'njuexciting@163.com'
+    # MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
+    MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
     # MAIL_SERVER = 'smtp.googlemail.com'
     # MAIL_PORT = 587
     # MAIL_USE_TLS = True
@@ -32,19 +41,39 @@ class Config:
     MENU_SETTING = {
         "button": [
             {
-                "type": 'view',
-                "name": "成绩查询",
-                "url":  'https://open.weixin.qq.com/connect/oauth2/authorize?appid=%s'%APP_ID+'&redirect_uri=http%3A%2F%2Fgreatnju.com%2Fwechat%2Fgrade_click&response_type=code&scope=snsapi_base&state=STATE#wechat_redirect'
+                'name': '教务助手',
+                'sub_button': [
+                    {
+                        "type": 'view',
+                        "name": "成绩查询",
+                        "url": 'https://open.weixin.qq.com/connect/oauth2/authorize?appid=%s' % APP_ID + '&redirect_uri=http%3A%2F%2Fgreatnju.com%2Fwechat%2Fgrade_click&response_type=code&scope=snsapi_base&state=STATE#wechat_redirect'
+                    },
+                    {
+                        "type": 'view',
+                        "name": "GPA计算",
+                        "url": 'https://open.weixin.qq.com/connect/oauth2/authorize?appid=%s' % APP_ID + '&redirect_uri=http%3A%2F%2Fgreatnju.com%2Fwechat%2Fcal_click&response_type=code&scope=snsapi_base&state=STATE#wechat_redirect'
+                    },
+                    {
+                        "type": 'view',
+                        "name": "我的课表",
+                        "url": 'https://open.weixin.qq.com/connect/oauth2/authorize?appid=%s' % APP_ID + '&redirect_uri=http%3A%2F%2Fgreatnju.com%2Fwechat%2Ftimetable_click&response_type=code&scope=snsapi_base&state=STATE#wechat_redirect'
+                    }
+                    # {
+                    #     "type": 'view',
+                    #     "name": '???',
+                    #     "url": 'http://www.baidu.com'
+                    # }
+                ]
             },
             {
                 "type": 'view',
-                "name": "GPA计算",
-                "url":  'https://open.weixin.qq.com/connect/oauth2/authorize?appid=%s'%APP_ID+'&redirect_uri=http%3A%2F%2Fgreatnju.com%2Fwechat%2Fcal_click&response_type=code&scope=snsapi_base&state=STATE#wechat_redirect'
+                "name": "使用帮助",
+                "url": 'http://www.qq.com'
             },
             {
-                "type": 'view',
-                "name": "我的课表",
-                "url":  'https://open.weixin.qq.com/connect/oauth2/authorize?appid=%s'%APP_ID+'&redirect_uri=http%3A%2F%2Fgreatnju.com%2Fwechat%2Ftimetable_click&response_type=code&scope=snsapi_base&state=STATE#wechat_redirect'
+                'type': 'click',
+                'name': '联系我们',
+                'key': 'contact'
             }
         ]
     }
@@ -53,11 +82,12 @@ class Config:
 
     WAIT_FOR_DEV_TEXT = u"此功能正在开发中，请耐心等待"
 
-    COMMAND_TEXT = u"请回复以下关键词开始：\n成绩\ngpa\n课程\n"
+    COMMAND_TEXT = u""
+    # COMMAND_TEXT = u"请回复以下关键词开始：\n成绩\ngpa\n课程\n"
 
     COMMAND_NOT_FOUND_TEXT = u"收到你的留言啦！"
 
-    REMEMBER_PASSWORD_MESSAGE = u"如果您选择将您的微信号与教务系统账号绑定，我们将储存您的教务系统及密码。我们承诺不会将您的信息用作其他用途，并妥善保管您的信息"
+    REMEMBER_PASSWORD_MESSAGE = u"选择将您的微信号与教务系统账号绑定后，今后使用成绩查询、GPA计算、课程表等功能时将无需再次登录。为此，我们将以某种形式储存您的教务系统密码。我们承诺绝不将您的信息用作其其他用途，并妥善保管您的信息。"
 
     @staticmethod
     def init_app(app):

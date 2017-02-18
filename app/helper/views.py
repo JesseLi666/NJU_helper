@@ -10,10 +10,11 @@ from flask_login import current_user, login_user, logout_user, login_required
 
 from ..spider import jw_spider
 from . import helper
-from .forms import JWLoginForm, wechat_JWLoginForm
+from .forms import JWLoginForm, wechat_JWLoginForm, suggestForm
 from .. import db
 from ..decorators import jw_login_required
 from ..models import User, AESCipher
+from .mail import send_email
 
 
 @helper.route('/jw_login', methods=['GET', 'POST'])
@@ -410,16 +411,30 @@ def timetable(week=1):
                 return redirect(url_for('helper.jw_wechat_login', openid=current_user.wechat_id, next=url_for('helper.get_wechat_timetable_start')))
             current_user.save_courses_into_database(res, stu=current_user._get_current_object())
     # res = current_user.spd.get_course()
-    color_list = ['#A7F2DC', '#F9D489', '#B2DB78', '#969CDB', '#F998E1', "#88D9F2", '#F9DE8C', '#97DB7B', '#C180DB', '#F9A18A', '#F9BAA2', '#EEA1F9', '#8FB1DB', '#B9A8DB', '#F2BDBA']
 
     # res=[['毛泽东思想和中国特色社会主义理论体系概论（理论部分）', '高静', '周二 第5-7节 1-18周 仙Ⅱ-314', '00000030A'],
     #  ['现代气候学基础', '陈星, 张录军, 黄樱', '周三 第3-4节 1-14周  仙Ⅱ-314\n周五 第3-4节 1-14周  仙Ⅱ-314', '17010040'],
     #  ['数值天气预报', '孙旭光, 杨修群', '周三 第1-2节 双周 丙502.506\n周三 第1-2节 单周 仙Ⅱ-314\n周一 第3-4节 1-18周 仙Ⅱ-314', '17010060'],
     #  ['气象统计预报', '汤剑平, 宋金杰', '周一 第3-4节 1-18周 仙Ⅱ-314\n周五 第1-2节 双周 丙502.506\n周五 第1-2节 单周 仙Ⅱ-314', '17010070'],
     #  ['天气分析与预报技术', '王亦平', '周三 第5-8节 1-15周  预报台\n周四 第1-4节 1-15周  预报台', '17010150'], ['123', '王', '周五 第9-11节 1-15周  预报台\n周五 第9-11节 1-15周  预报台', '17010150']]
-
-    courses = current_user.spd.create_courses(week=week, course_result=res)
+    # random.shuffle(color_list)
+    courses = current_user.spd.create_courses(week=week, course_result=res)[0]
+    courses_except = current_user.spd.create_courses(week=week, course_result=res)[1]
     for r in res:
         r[2] = r[2].replace('\n', '<br>')
+    color_list = ['#29B6F6', '#9CCC65', '#EC407A', '#FFA726', '#AB47BC', '#FF7043',
+     '#7E57C2', '#26C6DA', '#66BB6A', '#8D6E63', '#42A5F5', '#BDBDBD', '#5C6BC0', '#26A69A', '#ef5350', '#D4E157']
+    return render_template('helper/course.html', courses=courses, week_now=week, color_list=color_list, msg=res, len=len, courses_except=courses_except)
 
-    return render_template('helper/course.html', courses=courses, week_now=week, color_list=color_list, msg=res, len=len)
+@helper.route('/suggestion', methods=['GET', 'POST'])
+def suggest():
+    form = suggestForm()
+    if form.validate_on_submit():
+        content = form.suggestion.data
+        openid = request.args.get('openid')
+        if not openid:
+            openid = 'Someone'
+        send_email(current_app.config['SEND_MAIL_TO'], 'New suggestion', 'mail/suggestion', wechat_id=openid, content=content)
+        flash('已收到您的反馈！')
+    return render_template('helper/suggestion.html', form=form)
+

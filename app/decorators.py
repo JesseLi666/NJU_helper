@@ -3,6 +3,14 @@ from flask import current_app, abort, redirect, url_for, request
 import urllib.request
 # from .helper.spider import jws
 from flask_login import current_user
+from threading import Thread
+
+#异步框架
+def async(f):
+    def wrapper(*args, **kwargs):
+        thr = Thread(target = f, args = args, kwargs = kwargs)
+        thr.start()
+    return wrapper
 
 def jw_login_required(f):
     @wraps(f)

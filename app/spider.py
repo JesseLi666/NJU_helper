@@ -154,52 +154,58 @@ class jw_spider:
         c3 = c.split('\n')
         end = 19
         res = []
+        res_except = []
         dict = {u'一':1, u'二':2, u'三':3, u'四':4, u'五':5, u'六':6, u'日':7}
         for c4 in c3:
             # print(c4)
-            week = []
-            r1 = re.findall(r'第\d+周 ', c4)
-            for rr1 in r1:
-                week.append(int(re.sub(r'第(\d+)周 ', r'\1', rr1)))
-            r2 = re.findall(r'\d+-\d+周', c4)
-            for rr2 in r2:
-                for i in range(int(re.sub(r'(\d+)-(\d+)周', r'\1', rr2)), int(re.sub(r'(\d+)-(\d+)周', r'\2', rr2))+1):
-                    week.append(i)
-            r3 = re.findall(r'从第\d+周开始:.周 ', c4)
-            for rr3 in r3:
-                danshaung = re.sub(r'从第\d+周开始:(.)周 ', r'\1', rr3)
-                if danshaung == '单':
-                    mod = 1
-                elif danshaung == '双':
-                    mod = 0
-                else:
-                    mod = -1
-                for i in range(int(re.sub(r'从第(\d+)周开始:.周 ', r'\1', rr3)), end):
-                    if i%2 == mod:
+            try:
+                week = []
+                r1 = re.findall(r'第\d+周 ', c4)
+                for rr1 in r1:
+                    week.append(int(re.sub(r'第(\d+)周 ', r'\1', rr1)))
+                r2 = re.findall(r'\d+-\d+周', c4)
+                for rr2 in r2:
+                    for i in range(int(re.sub(r'(\d+)-(\d+)周', r'\1', rr2)), int(re.sub(r'(\d+)-(\d+)周', r'\2', rr2))+1):
                         week.append(i)
-            r4 = re.findall(r' .周', c4)
-            # print(r4)
-            for rr4 in r4:
-                danshaung = re.sub(r' (.)周', r'\1', rr4)
-                # print(danshaung)
-                if danshaung == '单':
-                    mod = 1
-                elif danshaung == '双':
-                    mod = 0
-                else:
-                    mod = -1
-                for i in range(1, end):
-                    if i%2 == mod:
-                        week.append(i)
-            day = dict[c4[1]]
-            jieshu = [int(re.sub(r'[^\d]+第(\d+)-(\d+)节.+', r'\1', c4)), int(re.sub(r'[^\d]+第(\d+)-(\d+)节.+', r'\2', c4))]
-            c5 = c4.split('周')
-            jiaoshi = c5[len(c5) - 1].strip()
-            res.append([week, day, jieshu, jiaoshi])
-        return res
+                r3 = re.findall(r'从第\d+周开始:.周 ', c4)
+                for rr3 in r3:
+                    danshaung = re.sub(r'从第\d+周开始:(.)周 ', r'\1', rr3)
+                    if danshaung == '单':
+                        mod = 1
+                    elif danshaung == '双':
+                        mod = 0
+                    else:
+                        mod = -1
+                    for i in range(int(re.sub(r'从第(\d+)周开始:.周 ', r'\1', rr3)), end):
+                        if i%2 == mod:
+                            week.append(i)
+                r4 = re.findall(r' .周', c4)
+                # print(r4)
+                for rr4 in r4:
+                    danshaung = re.sub(r' (.)周', r'\1', rr4)
+                    # print(danshaung)
+                    if danshaung == '单':
+                        mod = 1
+                    elif danshaung == '双':
+                        mod = 0
+                    else:
+                        mod = -1
+                    for i in range(1, end):
+                        if i%2 == mod:
+                            week.append(i)
+                day = dict[c4[1]]
+                jieshu = [int(re.sub(r'[^\d]+第(\d+)-(\d+)节.+', r'\1', c4)), int(re.sub(r'[^\d]+第(\d+)-(\d+)节.+', r'\2', c4))]
+                c5 = c4.split('周')
+                jiaoshi = c5[len(c5) - 1].strip()
+                res.append([week, day, jieshu, jiaoshi])
+            except:
+                res_except.append(c4)
+
+        return [res, res_except]
 
     def create_courses(self, course_result, week=1):
         courses = []
+        courses_except = []
         index = 0
         for i in range(0, 7):
             t1 = []
@@ -209,8 +215,11 @@ class jw_spider:
             courses.append(t1)
         for t in course_result:
             course = self.deal_course(t[2])
+            if course[1] != []:
+                for te in course[1]:
+                    courses_except.append([t[0], t[1], te, index])
             # print(course)
-            for c in course:
+            for c in course[0]:
                 if week in c[0]:
                     # print(courses)
                     for i in range(c[2][0], c[2][1]+1):
@@ -226,4 +235,4 @@ class jw_spider:
                     if (c[2][1] > c[2][0]+1) and len(courses[c[1] - 1][c[2][0]+1][1]) == 1:
                         courses[c[1]-1][c[2][0]+1][0] = t[1]
             index += 1
-        return courses
+        return [courses, courses_except]

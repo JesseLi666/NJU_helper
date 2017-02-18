@@ -188,7 +188,8 @@ def click_resp():
         # 'music': play_music,
         # 'weather': get_weather_news
         'score': score_click,
-        'cal': cal_click
+        'cal': cal_click,
+        'contact': contact_click,
     }
     # 匹配指令后，重置状态
     # set_user_state(openid, 'default')
@@ -247,18 +248,14 @@ def timetable_reply():
 def update_menu_setting():
     """更新自定义菜单"""
     # logging.info('?')
-    current_app.logger.info('test')
     # current_app.logger.info(current_app.config['MENU_SETTING'])
     try:
         wechat.create_menu(current_app.config['MENU_SETTING'])
         # print(current_app.config['MENU_SETTING'])
         # logging.info(current_app.config['MENU_SETTING'])
-        current_app.logger.info('1')
     except Exception as e:
-        current_app.logger.info('2')
         return wechat.response_text(e)
     else:
-        current_app.logger.info('3')
         return wechat.response_text('Done!')
 
 def subscribe():
@@ -268,6 +265,10 @@ def subscribe():
 
 def score_click():
     msg = '请回复‘成绩’'
+    return wechat.response_text(msg)
+
+def contact_click():
+    msg = '点击链接加入群【NJU小帮手的小帮手们】：https://jq.qq.com/?_wv=1027&k=453dRgc'
     return wechat.response_text(msg)
 
 
