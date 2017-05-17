@@ -32,7 +32,12 @@ def create_app(config_name):
     db.init_app(app)
     login_manager.init_app(app)
 
+<<<<<<< Updated upstream
     handler = RotatingFileHandler('app.log', maxBytes=10000, backupCount=1, encoding='utf8')
+=======
+
+    handler = RotatingFileHandler('app.log', maxBytes=10000, backupCount=10)
+>>>>>>> Stashed changes
     handler.setFormatter(logging.Formatter(
         '%(asctime)s %(levelname)s: %(message)s '
         '[in %(pathname)s:%(lineno)d]'
