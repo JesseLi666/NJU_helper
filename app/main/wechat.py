@@ -1,11 +1,16 @@
+# coding: utf-8
 from wechat_sdk import WechatBasic, WechatConf
 from wechat_sdk.messages import TextMessage, ImageMessage, EventMessage
-from .. import redis
-from flask import current_app, logging
+import datetime
 import re
 import urllib.parse
-from .state import jw_delete, courses_fresh
-# from .state import set_user_state, get_user_state, set_user_last_interact_time, get_user_last_interact_time
+
+from flask import current_app, logging
+
+from app import redis
+from app.main.state import jw_delete, courses_fresh
+from app.models import User
+
 
 def init_wechat_sdk():
     """初始化微信 SDK"""
@@ -37,27 +42,19 @@ def init_wechat_sdk():
         redis.set("wechat:access_token", access_token['access_token'], 7000)
         redis.set("wechat:access_token_expires_at",
                   access_token['access_token_expires_at'], 7000)
-        # jsapi_ticket = wechat.get_jsapi_ticket()
-        # redis.set("wechat:jsapi_ticket", jsapi_ticket['jsapi_ticket'], 7000)
-        # redis.set("wechat:jsapi_ticket_expires_at",
-        #           jsapi_ticket['jsapi_ticket_expires_at'], 7000)
 
     return wechat
 
+
 def update_wechat_token():
     """刷新微信 token """
-    # wechat = init_wechat_sdk()
     wechat.grant_token()
-    # wechat.grant_jsapi_ticket()
     access_token = wechat.get_access_token()
     redis.set("wechat:access_token", access_token['access_token'], 7000)
     redis.set("wechat:access_token_expires_at",
               access_token['access_token_expires_at'], 7000)
     return wechat.response_text('Done!')
-    # jsapi_ticket = wechat.get_jsapi_ticket()
-    # redis.set("wechat:jsapi_ticket", jsapi_ticket['jsapi_ticket'], 7000)
-    # redis.set("wechat:jsapi_ticket_expires_at",
-    #           jsapi_ticket['jsapi_ticket_expires_at'], 7000)
+
 
 def get_wechat_access_token():
     """获取 access_token"""
@@ -68,12 +65,12 @@ def get_wechat_access_token():
         current_app.logger.warning(u"获取 access_token 缓存失败")
         return None
 
+
 def wechat_response(data, msg_signature=None, timestamp=None, nonce=None):
     global message, openid, wechat
     wechat = init_wechat_sdk()
-    #.parse_data(data, msg_signature=None, timestamp=None, nonce=None)
     wechat.parse_data(data=data, msg_signature=msg_signature, timestamp=timestamp, nonce=nonce)
-    #公共信息获取
+    # 公共信息获取
     id = wechat.message.id  # 对应于 XML 中的 MsgId
     target = wechat.message.target  # 对应于 XML 中的 ToUserName
     source = wechat.message.source  # 对应于 XML 中的 FromUserName
@@ -94,8 +91,10 @@ def wechat_response(data, msg_signature=None, timestamp=None, nonce=None):
     # set_user_last_interact_time(openid, message.time)
     return response
 
+
 # 储存微信消息类型所对应函数（方法）的字典
 msg_type_resp = {}
+
 
 def set_msg_type(msg_type):
     """
@@ -105,6 +104,7 @@ def set_msg_type(msg_type):
         msg_type_resp[msg_type] = func
         return func
     return decorator
+
 
 @set_msg_type('text')
 def text_resp():
@@ -139,14 +139,18 @@ def text_resp():
         # u'^论坛|^論壇': bbs_url,
         # u'^快递|^快遞': enter_express_state,
         # u'^绑定|^綁定': auth_url,
-        u'刷新accesstoken':update_wechat_token,
+        u'刷新accesstoken': update_wechat_token,
         u'更新菜单': update_menu_setting,
-        #why u
-        u'成绩|成绩查询|查成绩':grade_reply,
-        u'计算|GPA|gpa|计算器|学分绩':cal_reply,
-        u'课表|课程|我的课表|课程表':timetable_reply,
-        u'取消绑定':jw_cancel,
-        u'刷新课程':course_fresh
+        # why u
+        u'成绩|成绩查询|查成绩': grade_reply,
+        u'计算|GPA|gpa|计算器|学分绩': cal_reply,
+        u'课表|课程|我的课表|课程表': timetable_reply,
+        u'取消绑定': jw_cancel,
+        u'刷新课程': course_fresh,
+        u'订阅课表': subscribe_timetable,
+        u'退订课表': unsubscribe_timetable,
+        u'订阅成绩': subscribe_grade,
+        u'退订成绩': unsubscribe_grade
     }
     # 状态列表
     state_commands = {
@@ -174,6 +178,7 @@ def text_resp():
         #     response = state_commands[state]()
     return response
 
+
 @set_msg_type('click')
 def click_resp():
     """菜单点击类型回复"""
@@ -196,26 +201,26 @@ def click_resp():
     response = commands[message.key]()
     return response
 
+
 @set_msg_type('subscribe')
 def subscribe_resp():
     """订阅类型回复"""
-    # set_user_state(openid, 'default')
     response = subscribe()
     return response
+
 
 @set_msg_type('view')
 def subscribe_resp():
     """菜单跳转类型回复"""
-    # set_user_state(openid, 'default')
-    # response = subscribe()
     content = '菜单跳转'
     response = wechat.response_text(content)
     return response
 
+
 def grade_reply():
-    url = 'http://www.greatnju.com/wechat/grade'
+    url = current_app.config['SITE_URL'] + '/wechat/grade'
     data = {'openid': openid}
-    url = url + '?'+urllib.parse.urlencode(data)
+    url = url + '?' + urllib.parse.urlencode(data)
     articles = [{
         'title': u'成绩查询',
         'description': u'点击查询成绩',
@@ -223,10 +228,11 @@ def grade_reply():
     }]
     return wechat.response_news(articles=articles)
 
+
 def cal_reply():
-    url = 'http://www.greatnju.com/wechat/cal'
+    url = current_app.config['SITE_URL'] + '/wechat/cal'
     data = {'openid': openid}
-    url = url + '?'+urllib.parse.urlencode(data)
+    url = url + '?' + urllib.parse.urlencode(data)
     articles = [{
         'title': u'GPA计算器',
         'description': u'点击计算GPA',
@@ -234,10 +240,11 @@ def cal_reply():
     }]
     return wechat.response_news(articles=articles)
 
+
 def timetable_reply():
-    url = 'http://www.greatnju.com/wechat/timetable'
+    url = current_app.config['SITE_URL'] + '/wechat/timetable'
     data = {'openid': openid}
-    url = url + '?'+urllib.parse.urlencode(data)
+    url = url + '?' + urllib.parse.urlencode(data)
     articles = [{
         'title': u'我的课表',
         'description': u'点击查看课表',
@@ -245,27 +252,27 @@ def timetable_reply():
     }]
     return wechat.response_news(articles=articles)
 
+
 def update_menu_setting():
     """更新自定义菜单"""
-    # logging.info('?')
-    # current_app.logger.info(current_app.config['MENU_SETTING'])
     try:
         wechat.create_menu(current_app.config['MENU_SETTING'])
-        # print(current_app.config['MENU_SETTING'])
-        # logging.info(current_app.config['MENU_SETTING'])
     except Exception as e:
         return wechat.response_text(e)
     else:
         return wechat.response_text('Done!')
+
 
 def subscribe():
     """回复订阅事件"""
     content = current_app.config['WELCOME_TEXT'] + current_app.config['COMMAND_TEXT']
     return wechat.response_text(content)
 
+
 def score_click():
     msg = '请回复‘成绩’'
     return wechat.response_text(msg)
+
 
 def contact_click():
     msg = '点击链接加入群【NJU小帮手的小帮手们】：https://jq.qq.com/?_wv=1027&k=453dRgc'
@@ -274,11 +281,95 @@ def contact_click():
 
 def cal_click():
     msg = '请回复‘计算’'
-    url = 'https://open.weixin.qq.com/connect/oauth2/authorize?appid=wx9fc2c855d6d9ddb4&redirect_uri=http%3A%2F%2Fwww.greatnju.com%2Fwechat%2Fcal_click&response_type=code&scope=snsapi_base&state=STATE#wechat_redirect'
+    url = 'https://open.weixin.qq.com/connect/oauth2/authorize?appid=wx9fc2c855d6d9ddb4&redirect_uri=' + \
+        current_app.config['SITE_URL'] + \
+        '/wechat/cal_click&response_type=code&scope=snsapi_base&state=STATE#wechat_redirect'
     return wechat.response_text(msg)
+
 
 def jw_cancel():
     return wechat.response_text(jw_delete(openid))
 
+
 def course_fresh():
     return wechat.response_text(courses_fresh(openid))
+
+
+def subscribe_timetable():  # 保存在redis的集合subscribe_timetable中
+    user = User.query.filter_by(wechat_id=openid).first()
+    if user is None or user.password is None:
+        msg = '未绑定教务账号'
+    else:
+        redis.sadd("subscribe_timetable", openid)
+        msg = '订阅课表成功'
+    return wechat.response_text(msg)
+
+
+def unsubscribe_timetable():
+    res = redis.srem("subscribe_timetable", openid)
+    if res == 1:
+        return wechat.response_text("退订成功")
+    return wechat.response_text("未订阅课表")
+
+
+def subscribe_grade():  # 保存在redis的字典subscribe_grade中
+    user = User.query.filter_by(wechat_id=openid).first()
+    if user is None or user.password is None:
+        msg = '未绑定教务账号'
+    else:
+        # 先获取当前以有成绩的课程，并且记录下来
+        cur_year = datetime.datetime.now().year % 2000
+        cur_term = total_term = (cur_year - user.spd.age) * 2
+        grade_res = user.spd.get_grade(age=user.spd.age, term=cur_term)
+        # grade_res 是当前学期已经有成绩的所有课程列表，每一项的格式为：[课程名, 类型，学分，成绩]
+        # 记录当前学期，不用每次都计算
+        value = str(cur_term) + " "
+        for item in grade_res:
+            value += (item[0]) + " "  # 只记录课程名
+        redis.hsetnx("subscribe_grade", openid, value)
+        msg = '订阅成绩成功'
+    return wechat.response_text(msg)
+
+
+def unsubscribe_grade():
+    res = redis.hdel("subscribe_grade", openid)
+    if res == 1:
+        return wechat.response_text("退订成功")
+    return wechat.response_text("未订阅成绩")
+
+
+from app.main import main as main_blueprint
+
+
+@main_blueprint.app_errorhandler(Exception)
+def exception_handler(e):
+    """
+    拦截应用中出现的错误，返回提示信息并发送邮件给管理员
+    """
+    from app.helper.mail import send_email_by_error
+    from flask import request
+    import traceback
+
+    # 从异常中获取堆栈信息
+    try:
+        raise e
+    except Exception as e:
+        error_msg = traceback.format_exc()
+        current_app.logger.error(error_msg)
+    msg = """
+    openid: {0}\n
+    url: {1}\n
+    method: {2}\n
+    message: {3}\n
+    traceback: {4}\n
+    """
+
+    wechat_message = message.content if message.type == "text" else message.type
+
+    msg = msg.format(openid, request.url, request.method, wechat_message, error_msg)
+
+    try:
+        send_email_by_error(msg)
+    except Exception as e:
+        current_app.logger.error(e)
+    return wechat.response_text("非常抱歉，公众号后台出现了未知的错误，我们会尽快修复！")

@@ -1,3 +1,4 @@
+# coding: utf-8
 import json
 import re
 import requests
@@ -23,7 +24,6 @@ def jw_login():
 
     if form.validate_on_submit():
         site_choose = form.site.data
-        ###
         data = {
             'userName': form.number.data,
             'password': form.password.data
@@ -32,35 +32,27 @@ def jw_login():
         user = User.query.filter_by(user_number=form.number.data).first()
         if user is None:
             new_user = User()
-            new_user.user_number=form.number.data
+            new_user.user_number = form.number.data
             db.session.add(new_user)
             db.session.commit()
             user = User.query.filter_by(user_number=form.number.data).first()
 
-        # user.create_spd()
-        user.spd=jw_spider()
+        user.spd = jw_spider()
         user.spd.site = int(site_choose)
-        # user.spd.set_age(int(form.number.data[0:2]))
-        # user.test_id = 1
         user.spd.age = int(form.number.data[0:2])
         login_res = user.spd.login(login_data=data)
         if login_res == 'success':
             login_user(user)
-            # return redirect(url_for('helper.get_grade_start', num=user.user_number))
-            # if request.args.get('next'):
-            #     next = url_for('main.index')+request.args.get('next')
-            #     print(next)
-
             return redirect(request.args.get('next') or url_for('helper.get_grade_start'))
         else:
             flash(login_res)
-    return render_template('helper/login.html',form=form)
+    return render_template('helper/login.html', form=form)
+
 
 @helper.route('/grade')
 @jw_login_required
 def get_grade_start():
-    return redirect(url_for('helper.get_grade',term=1))
-
+    return redirect(url_for('helper.get_grade', term=1))
 
 
 @helper.route('/grades/<int:term>', methods=['GET', 'POST'])
@@ -72,8 +64,10 @@ def get_grade(term):
     except:
         grade_res = [['null', 'null', 0, 0]]
     # cnt = len(grade_res)
-    total_term = (16 - current_user.spd.age) * 2 + 1
-    return render_template('helper/grade.html', grades = grade_res, terms=total_term, term_now = term, base_url = current_user.spd.base_url)
+    cur_year = datetime.datetime.now().year % 2000
+    total_term = (cur_year - current_user.spd.age) * 2 - 1
+    return render_template('helper/grade.html', grades=grade_res, terms=total_term, term_now=term, base_url=current_user.spd.base_url)
+
 
 @helper.route('/jw_logout')
 # @login_required
@@ -88,28 +82,29 @@ def jw_logout():
 def calculate():
     # print('?')
     res = request.form.getlist('g')
-    total_weight=0
-    total_grade=0
+    total_weight = 0
+    total_grade = 0
     for r in res:
         weight = int(re.sub(r',\d+', '', r))
         grade = int(re.sub(r'\d+,', '', r))
-        total_grade += weight*grade
+        total_grade += weight * grade
         total_weight += weight
     # print(res[0])
     if(total_weight != 0):
-        gpa = total_grade/total_weight/20
+        gpa = total_grade / total_weight / 20
         gpa = str('%.3f' % gpa)
         # print(gpa)
     else:
         gpa = 'wrong!'
     return gpa
 
+
 @helper.route('/_cal2', methods=['GET', 'POST'])
 def calculate_std():
     # print('?')
     res = request.form.getlist('g')
-    total_weight=0
-    total_grade=0
+    total_weight = 0
+    total_grade = 0
     for r in res:
         weight = int(re.sub(r',\d+', '', r))
         grade = int(re.sub(r'\d+,', '', r))
@@ -125,7 +120,7 @@ def calculate_std():
         total_weight += weight
     # print(res[0])
     if(total_weight != 0):
-        gpa = total_grade/total_weight
+        gpa = total_grade / total_weight
         gpa = str('%.3f' % gpa)
         # print(gpa)
     else:
@@ -138,13 +133,14 @@ def calculate_std():
 def grade_cal():
     total_term = (16 - current_user.spd.age) * 2 + 1
     grades = []
-    for i in range(1,total_term+1):
+    for i in range(1, total_term + 1):
         temp_grade = current_user.spd.get_grade(age=current_user.spd.age, term=i)
         grades.append(temp_grade)
         # for ls in temp_grade:
         #     grades.append(ls)
 
-    return render_template('helper/cal.html', grades = grades)
+    return render_template('helper/cal.html', grades=grades)
+
 
 @helper.route('/wechat/grade')
 def get_wechat_grade_start():
@@ -152,7 +148,7 @@ def get_wechat_grade_start():
     openid = request.args.get('openid')
     if not openid:
         current_app.logger.info('test1')
-        return redirect(url_for('helper.get_grade',term=1))
+        return redirect(url_for('helper.get_grade', term=1))
     else:
         user = User.query.filter_by(wechat_id=openid).first()
         # current_app.logger.info(user.password)
@@ -171,8 +167,8 @@ def get_wechat_grade_start():
             'userName': user.user_number,
             'password': pwd
         }
-        current_app.logger.info('username=%s'%data.get('userName'))
-        current_app.logger.info('password=%s'%data.get('password'))
+        current_app.logger.info('username=%s' % data.get('userName'))
+        current_app.logger.info('password=%s' % data.get('password'))
         user.spd = jw_spider()
         user.spd.site = 0
         user.spd.age = int(user.user_number[0:2])
@@ -198,7 +194,7 @@ def get_wechat_grade_start():
 @helper.route('/wechat/jw_login', methods=['GET', 'POST'])
 def jw_wechat_login(type=0):
     form = wechat_JWLoginForm()
-    if type==1:
+    if type == 1:
         flash('您绑定的账号密码有误，请重新绑定！')
     if form.validate_on_submit():
         openid = request.args.get('openid')
@@ -217,16 +213,17 @@ def jw_wechat_login(type=0):
 
         # user.create_spd()
         if form.rem_wechat.data == True:
-            #加密账号密码并储存
+            # 加密账号密码并储存
             user.remember_me = True
             user.user_number = form.number.data
             cipher = AESCipher(current_app.config['PASSWORD_SECRET_KEY'])
+            print("form.password.data", form.password.data)
             pwd = cipher.encrypt(form.password.data)
             user.password = pwd
             db.session.add(user)
             current_app.logger.info('chucunlema')
             db.session.commit()
-        user.spd=jw_spider()
+        user.spd = jw_spider()
         user.spd.site = int(site_choose)
         # user.spd.set_age(int(form.number.data[0:2]))
         # user.test_id = 1
@@ -250,7 +247,7 @@ def get_wechat_cal_start():
     openid = request.args.get('openid')
     if not openid:
         current_app.logger.info('test1')
-        return redirect(url_for('helper.grade_cal',term=1))
+        return redirect(url_for('helper.grade_cal', term=1))
     else:
         user = User.query.filter_by(wechat_id=openid).first()
         if user is None or user.wechat_id is None:
@@ -263,7 +260,6 @@ def get_wechat_cal_start():
         except:
             current_app.logger.info('test3')
             return redirect(url_for('helper.jw_wechat_login', openid=openid))
-
 
         data = {
             'userName': user.user_number,
@@ -290,18 +286,19 @@ def get_wechat_cal_start():
             else:
                 return redirect(url_for('helper.jw_wechat_login', type=1))
 
+
 @helper.route('/wechat/timetable')
 def get_wechat_timetable_start():
     openid = request.args.get('openid')
-    week_now = datetime.datetime.now().isocalendar()[1]-6
-    ##当前是第几周
+    week_now = datetime.datetime.now().isocalendar()[1] - current_app.config.get("STRAT_WEEK", 6)
+    # 当前是第几周
 
-    current_app.logger.info('现在是第%d周'%week_now)
+    current_app.logger.info("week_now is %d" % week_now)
     # week_now = 1
     if not openid:
         current_app.logger.info('test1')
-        return redirect(url_for('helper.timetable',week=week_now))
-        ##当前周
+        return redirect(url_for('helper.timetable', week=week_now))
+        # 当前周
     else:
         user = User.query.filter_by(wechat_id=openid).first()
         if user is None or user.wechat_id is None:
@@ -332,11 +329,11 @@ def get_wechat_timetable_start():
             user.spd.site = 1
             login_res = user.spd.login(login_data=data)
             if login_res != 'success':
+                print(login_res)
                 flash(login_res)
-                sleep(2)
 
-            #     return redirect(url_for('helper.jw_wechat_login', type=1, openid=openid, next=url_for('helper.get_wechat_timetable_start')))
-
+            # return redirect(url_for('helper.jw_wechat_login', type=1, openid=openid,
+            # next=url_for('helper.get_wechat_timetable_start')))
 
         return redirect(url_for('helper.timetable', week=week_now))
 
@@ -349,11 +346,13 @@ def wechat_cal_click():
         return redirect(url_for('helper.get_wechat_cal_start'))
     else:
         current_app.logger.info(current_user.is_authenticated)
-        req_url = 'https://api.weixin.qq.com/sns/oauth2/access_token?appid=%s&secret=%s&code=%s&grant_type=authorization_code'%(current_app.config['APP_ID'], current_app.config['APP_SECRET'], code)
+        req_url = 'https://api.weixin.qq.com/sns/oauth2/access_token?appid=%s&secret=%s&code=%s&grant_type=authorization_code' % (
+            current_app.config['APP_ID'], current_app.config['APP_SECRET'], code)
         res = requests.get(req_url).content
-        res=res.decode()
+        res = res.decode()
         openid = json.loads(res).get('openid')
         return redirect(url_for('helper.get_wechat_cal_start', openid=openid))
+
 
 @helper.route('/wechat/grade_click')
 def wechat_grade_click():
@@ -363,11 +362,13 @@ def wechat_grade_click():
         return redirect(url_for('helper.get_wechat_grade_start'))
     else:
         current_app.logger.info(current_user.is_authenticated)
-        req_url = 'https://api.weixin.qq.com/sns/oauth2/access_token?appid=%s&secret=%s&code=%s&grant_type=authorization_code'%(current_app.config['APP_ID'], current_app.config['APP_SECRET'], code)
+        req_url = 'https://api.weixin.qq.com/sns/oauth2/access_token?appid=%s&secret=%s&code=%s&grant_type=authorization_code' % (
+            current_app.config['APP_ID'], current_app.config['APP_SECRET'], code)
         res = requests.get(req_url).content
-        res=res.decode()
+        res = res.decode()
         openid = json.loads(res).get('openid')
         return redirect(url_for('helper.get_wechat_grade_start', openid=openid))
+
 
 @helper.route('/wechat/timetable_click')
 def wechat_timetable_click():
@@ -377,11 +378,13 @@ def wechat_timetable_click():
         return redirect(url_for('helper.get_wechat_timetable_start'))
     else:
         current_app.logger.info(current_user.is_authenticated)
-        req_url = 'https://api.weixin.qq.com/sns/oauth2/access_token?appid=%s&secret=%s&code=%s&grant_type=authorization_code'%(current_app.config['APP_ID'], current_app.config['APP_SECRET'], code)
+        req_url = 'https://api.weixin.qq.com/sns/oauth2/access_token?appid=%s&secret=%s&code=%s&grant_type=authorization_code' % (
+            current_app.config['APP_ID'], current_app.config['APP_SECRET'], code)
         res = requests.get(req_url).content
-        res=res.decode()
+        res = res.decode()
         openid = json.loads(res).get('openid')
         return redirect(url_for('helper.get_wechat_timetable_start', openid=openid))
+
 
 @helper.route('/timetable')
 @jw_login_required
@@ -396,7 +399,7 @@ def timetable(week=1):
     if not current_user.remember_me:
         res = current_user.spd.get_course()
         current_app.logger.info(res)
-        if res ==[]:
+        if res == []:
             if current_user.wechat_id:
                 return redirect(url_for('helper.jw_wechat_login', openid=current_user.wechat_id, next=url_for('helper.timetable', week=week)))
             else:
@@ -407,7 +410,6 @@ def timetable(week=1):
             res = current_user.spd.get_course()
             if res == []:
                 flash('获取课程失败')
-                sleep(2)
                 return redirect(url_for('helper.jw_wechat_login', openid=current_user.wechat_id, next=url_for('helper.get_wechat_timetable_start')))
             current_user.save_courses_into_database(res, stu=current_user._get_current_object())
     # res = current_user.spd.get_course()
@@ -423,8 +425,9 @@ def timetable(week=1):
     for r in res:
         r[2] = r[2].replace('\n', '<br>')
     color_list = ['#29B6F6', '#9CCC65', '#EC407A', '#FFA726', '#AB47BC', '#FF7043',
-     '#7E57C2', '#26C6DA', '#66BB6A', '#8D6E63', '#42A5F5', '#BDBDBD', '#5C6BC0', '#26A69A', '#ef5350', '#D4E157']
+                  '#7E57C2', '#26C6DA', '#66BB6A', '#8D6E63', '#42A5F5', '#BDBDBD', '#5C6BC0', '#26A69A', '#ef5350', '#D4E157']
     return render_template('helper/course.html', courses=courses, week_now=week, color_list=color_list, msg=res, len=len, courses_except=courses_except)
+
 
 @helper.route('/suggestion', methods=['GET', 'POST'])
 def suggest():
@@ -434,7 +437,6 @@ def suggest():
         openid = request.args.get('openid')
         if not openid:
             openid = 'Someone'
-        send_email(current_app.config['SEND_MAIL_TO'], 'New suggestion', 'mail/suggestion', wechat_id=openid, content=content)
+        send_email_by_suggestion('mail/suggestion', wechat_id=openid, content=content)
         flash('已收到您的反馈！')
     return render_template('helper/suggestion.html', form=form)
-

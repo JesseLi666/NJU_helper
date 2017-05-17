@@ -1,3 +1,4 @@
+# coding: utf-8
 from flask import render_template, request, make_response, current_app, redirect, url_for, flash
 from flask_login import login_user
 from . import main
@@ -9,15 +10,17 @@ import os
 # from ..helper.forms import wechat_JWLoginForm
 # from ..helper.spider import jw_spider
 
+
 @main.route('/')
 def index():
     return render_template('hello.html')
 
-@main.route('/wechat', methods = ['GET', 'POST'] )
+
+@main.route('/wechat', methods=['GET', 'POST'])
 def wechat_auth():
     wechat = init_wechat_sdk()
     if request.method == 'GET':
-        token = 'tokenOf2017NJUHelper1s'
+        token = current_app.config['TOKEN']
         query = request.args
         signature = query.get('signature', '')
         timestamp = query.get('timestamp', '')
@@ -35,6 +38,7 @@ def wechat_auth():
         timestamp = query.get('timestamp', '')
         nonce = query.get('nonce', '')
         return wechat_response(request.data, msg_signature=signature, timestamp=timestamp, nonce=nonce)
+
 
 # @main.route('/<path>')
 # def today(path):
@@ -124,4 +128,5 @@ def wechat_auth():
 #             return redirect(request.args.get('next') or url_for('helper.get_grade_start'))
 #         else:
 #             flash(login_res)
-#     return render_template('helper/login.html', form=form, message=current_app.config['REMEMBER_PASSWORD_MESSAGE'])
+# return render_template('helper/login.html', form=form,
+# message=current_app.config['REMEMBER_PASSWORD_MESSAGE'])
