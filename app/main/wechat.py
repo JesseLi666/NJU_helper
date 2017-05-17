@@ -79,8 +79,10 @@ def wechat_response(data, msg_signature=None, timestamp=None, nonce=None):
     raw = wechat.message.raw  # 原始 XML 文本，方便进行其他分析
     #用户信息写入数据库###
     # set_user_info(openid)
+
     message = wechat.get_message()
     openid = message.source
+    current_app.logger.info('%s %s'%(openid, message.type))
     try:
         get_resp_func = msg_type_resp[message.type]
         response = get_resp_func()
@@ -151,6 +153,7 @@ def text_resp():
         u'退订课表': unsubscribe_timetable,
         u'订阅成绩': subscribe_grade,
         u'退订成绩': unsubscribe_grade
+
     }
     # 状态列表
     state_commands = {
@@ -206,8 +209,14 @@ def click_resp():
 def subscribe_resp():
     """订阅类型回复"""
     response = subscribe()
+    wechat.send_article_message(openid, media_id='swDXq7koQxTjlLtyzeLWowGKXL05kAvjcZVWkObWCDc')
     return response
 
+# @set_msg_type('unsubscribe')
+# def unsubscribe_resp():
+#     """订阅类型回复"""
+#     # set_user_state(openid, 'default')
+#     return wechat.response_text(jw_delete(openid))
 
 @set_msg_type('view')
 def subscribe_resp():

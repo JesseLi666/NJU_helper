@@ -88,29 +88,30 @@ class Config:
             {
                 "type": 'view',
                 "name": "使用帮助",
-                "url": 'http://www.qq.com'
+                "url": 'http://mp.weixin.qq.com/s/8iWO72QNAuhqS7pjgwFMLw'
             },
             {
-                'type': 'click',
+                'type': 'view',
                 'name': '联系我们',
-                'key': 'contact'
+                'url': 'https://jq.qq.com/?_wv=1027&k=453dRgc'
             }
         ]
     }
 
-    WELCOME_TEXT = u"欢迎关注NJU小帮手，一起搞个大新闻\n"
+    WELCOME_TEXT = u"*罒▽罒*yaho!\n欢迎关注NJU小帮手，一起搞个大新闻!\n\n"
 
     WAIT_FOR_DEV_TEXT = u"此功能正在开发中，请耐心等待"
 
-    COMMAND_TEXT = u""
+    # COMMAND_TEXT = u""
+    COMMAND_TEXT = u"(❁´︶`❁)请点击最下方菜单或者回复以下关键词开始：\n\n  成绩\n  gpa\n  课表\n\n目前教务系统连接不稳定，小帮手部分功能可能无法正常使用"
 
     COMMAND_NOT_FOUND_TEXT = u"收到你的留言啦！"
 
-    REMEMBER_PASSWORD_MESSAGE = u"选择将您的微信号与教务系统账号绑定后，今后使用成绩查询、GPA计算、课程表等功能时将无需再次登录。为此，我们将以某种形式储存您的教务系统密码。我们承诺绝不将您的信息用作其其他用途，并妥善保管您的信息。"
+    REMEMBER_PASSWORD_MESSAGE = u"选择将您的微信号与教务系统账号绑定后，今后使用成绩查询、GPA计算、课程表等功能时将无需再次登录。为此，我们将以某种形式储存您的教务系统密码。我们承诺绝不将您的信息用作其他用途，并妥善保管您的信息。"
 
 
 class DevelopmentConfig(Config):
-    DEBUG = True
+    # DEBUG = True
     SQLALCHEMY_DATABASE_URI = os.environ.get('DEV_DATABASE_URL') or \
         'sqlite:///' + os.path.join(basedir, 'data-dev.sqlite')
 

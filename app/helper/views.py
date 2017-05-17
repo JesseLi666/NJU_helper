@@ -2,11 +2,9 @@
 import json
 import re
 import requests
-import random
 import datetime
 from flask import render_template, redirect, url_for, request, flash,\
-    current_app, abort
-from time import sleep
+    current_app
 from flask_login import current_user, login_user, logout_user, login_required
 
 from ..spider import jw_spider
@@ -15,7 +13,7 @@ from .forms import JWLoginForm, wechat_JWLoginForm, suggestForm
 from .. import db
 from ..decorators import jw_login_required
 from ..models import User, AESCipher
-from .mail import send_email
+from .mail import send_email_by_suggestion
 
 
 @helper.route('/jw_login', methods=['GET', 'POST'])
@@ -127,6 +125,34 @@ def calculate_std():
         gpa = 'wrong!'
     return gpa
 
+@helper.route('/_cal3', methods=['GET', 'POST'])
+def calculate_wes():
+    # print('?')
+    res = request.form.getlist('g')
+    total_weight=0
+    total_grade=0
+    for r in res:
+        weight = int(re.sub(r',\d+', '', r))
+        grade = int(re.sub(r'\d+,', '', r))
+        if grade >= 85:
+            total_grade += weight * 4
+        elif grade >= 75:
+            total_grade += weight * 3
+        elif grade >= 60:
+            total_grade += weight * 2
+        else:
+            total_grade += weight * 1
+
+        total_weight += weight
+    # print(res[0])
+    if(total_weight != 0):
+        gpa = total_grade/total_weight
+        gpa = str('%.3f' % gpa)
+        # print(gpa)
+    else:
+        gpa = 'wrong!'
+    return gpa
+
 
 @helper.route('/cal')
 @jw_login_required
@@ -147,20 +173,18 @@ def get_wechat_grade_start():
     # global openid
     openid = request.args.get('openid')
     if not openid:
-        current_app.logger.info('test1')
-        return redirect(url_for('helper.get_grade', term=1))
+        return redirect(url_for('helper.get_grade',term=1))
     else:
         user = User.query.filter_by(wechat_id=openid).first()
         # current_app.logger.info(user.password)
         if user is None or user.wechat_id is None:
             return redirect(url_for('helper.jw_wechat_login', openid=openid))
         try:
-            current_app.logger.info('test2')
+            current_app.logger.info('%s %s grade'%(openid, user.user_number))
             pwd = user.password
             cipher = AESCipher(current_app.config['PASSWORD_SECRET_KEY'])
             pwd = cipher.decrypt(pwd)
         except:
-            current_app.logger.info('test3')
             return redirect(url_for('helper.jw_wechat_login', openid=openid))
 
         data = {
@@ -188,7 +212,7 @@ def get_wechat_grade_start():
                 login_user(user)
                 return redirect(request.args.get('next') or url_for('helper.get_grade_start'))
             else:
-                return redirect(url_for('helper.jw_wechat_login', type=1))
+                return redirect(url_for('helper.jw_wechat_login', type=1, openid=openid))
 
 
 @helper.route('/wechat/jw_login', methods=['GET', 'POST'])
@@ -216,12 +240,12 @@ def jw_wechat_login(type=0):
             # 加密账号密码并储存
             user.remember_me = True
             user.user_number = form.number.data
+            current_app.logger.info('%s %s new_login' % (openid, user.user_number))
             cipher = AESCipher(current_app.config['PASSWORD_SECRET_KEY'])
             print("form.password.data", form.password.data)
             pwd = cipher.encrypt(form.password.data)
             user.password = pwd
             db.session.add(user)
-            current_app.logger.info('chucunlema')
             db.session.commit()
         user.spd = jw_spider()
         user.spd.site = int(site_choose)
@@ -246,19 +270,17 @@ def jw_wechat_login(type=0):
 def get_wechat_cal_start():
     openid = request.args.get('openid')
     if not openid:
-        current_app.logger.info('test1')
-        return redirect(url_for('helper.grade_cal', term=1))
+        return redirect(url_for('helper.grade_cal',term=1))
     else:
         user = User.query.filter_by(wechat_id=openid).first()
         if user is None or user.wechat_id is None:
             return redirect(url_for('helper.jw_wechat_login', openid=openid))
         try:
-            current_app.logger.info('test2')
+            current_app.logger.info('%s %s cal' % (openid, user.user_number))
             pwd = user.password
             cipher = AESCipher(current_app.config['PASSWORD_SECRET_KEY'])
             pwd = cipher.decrypt(pwd)
         except:
-            current_app.logger.info('test3')
             return redirect(url_for('helper.jw_wechat_login', openid=openid))
 
         data = {
@@ -284,7 +306,7 @@ def get_wechat_cal_start():
                 login_user(user)
                 return redirect(request.args.get('next') or url_for('helper.grade_cal'))
             else:
-                return redirect(url_for('helper.jw_wechat_login', type=1))
+                return redirect(url_for('helper.jw_wechat_login', type=1, openid=openid))
 
 
 @helper.route('/wechat/timetable')
@@ -296,9 +318,8 @@ def get_wechat_timetable_start():
     current_app.logger.info("week_now is %d" % week_now)
     # week_now = 1
     if not openid:
-        current_app.logger.info('test1')
-        return redirect(url_for('helper.timetable', week=week_now))
-        # 当前周
+        return redirect(url_for('helper.timetable',week=week_now))
+        ##当前周
     else:
         user = User.query.filter_by(wechat_id=openid).first()
         if user is None or user.wechat_id is None:
@@ -306,15 +327,13 @@ def get_wechat_timetable_start():
         login_user(user)
         if not user.remember_me:
             user.create_spd()
-            current_app.logger.info('here1')
             return redirect(url_for('helper.timetable', week=week_now))
         try:
-            current_app.logger.info('test2')
+            current_app.logger.info('%s %s timetable' % (openid, user.user_number))
             pwd = user.password
             cipher = AESCipher(current_app.config['PASSWORD_SECRET_KEY'])
             pwd = cipher.decrypt(pwd)
         except:
-            current_app.logger.info('test3')
             return redirect(url_for('helper.jw_wechat_login', openid=openid, next=url_for('helper.get_wechat_timetable_start')))
 
         data = {
@@ -397,13 +416,16 @@ def timetable(week=1):
     if not current_user.is_authenticated:
         return redirect(url_for('helper.jw_login', next=url_for('helper.timetable', week=week)))
     if not current_user.remember_me:
-        res = current_user.spd.get_course()
-        current_app.logger.info(res)
-        if res == []:
-            if current_user.wechat_id:
-                return redirect(url_for('helper.jw_wechat_login', openid=current_user.wechat_id, next=url_for('helper.timetable', week=week)))
-            else:
-                return redirect(url_for('helper.jw_login', next=url_for('helper.timetable', week=week)))
+        try:
+            res = current_user.spd.get_course()
+            current_app.logger.info(res)
+            if res ==[]:
+                if current_user.wechat_id:
+                    return redirect(url_for('helper.jw_wechat_login', openid=current_user.wechat_id, next=url_for('helper.timetable', week=week)))
+                else:
+                    return redirect(url_for('helper.jw_login', next=url_for('helper.timetable', week=week)))
+        except:
+            return redirect(url_for('helper.jw_wechat_login', openid=current_user.wechat_id, next=url_for('helper.timetable', week=week)))
     else:
         res = current_user.get_courses_from_database()
         if res == []:
