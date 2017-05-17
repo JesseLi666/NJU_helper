@@ -1,20 +1,20 @@
-import requests, re
+import requests
+import re
 from requests.structures import CaseInsensitiveDict
 from bs4 import BeautifulSoup
 from flask import current_app, abort
 
 
-
 class jw_spider:
     def __init__(self):
-        self.site=0
+        self.site = 0
         self.header = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.118 Safari/537.36'}
         self.total_grade_all = 0
         self.total_weight_all = 0
-        self.age=16
+        self.age = 16
         self.jws = requests.Session()
-        self.base_url=''
+        self.base_url = ''
 
     def set_age(self, age):
         self.age = age
@@ -104,7 +104,7 @@ class jw_spider:
         # self.total_weight_all += total_weight
         # gpa = total_grade / total_weight / 20
         # print('第%d学期全部课程学分绩为：%f\n' % (term, gpa))
-    ###need to be deleted
+    # need to be deleted
     def alignment(self, str1, space, align='left'):
         length = len(str1.encode('gb2312'))
         space = space - length if space >= length else 0
@@ -134,16 +134,17 @@ class jw_spider:
 
             for j2 in range(len(tds)):
                 # tds[j2] = tds[j2].get_text().strip(' \t')
-                if j2==5:
-                    tds[j2] = BeautifulSoup(tds[j2].encode('utf-8').decode('utf-8').replace('<br/>', '\n'), 'lxml')
+                if j2 == 5:
+                    tds[j2] = BeautifulSoup(tds[j2].encode(
+                        'utf-8').decode('utf-8').replace('<br/>', '\n'), 'lxml')
                 tds[j2] = tds[j2].get_text().strip()
 
             temp.append(str(tds[2]))
             temp.append(str(tds[4]))
             temp.append(str(tds[5]))
-            temp.append(str(tds[0]))#编号
-            temp.append(str(tds[7]))#类型
-            temp.append(str(tds[3]))#校区
+            temp.append(str(tds[0]))  # 编号
+            temp.append(str(tds[7]))  # 类型
+            temp.append(str(tds[3]))  # 校区
             courses.append(temp)
             # print(tds[5])
         return courses
@@ -155,7 +156,7 @@ class jw_spider:
         end = 19
         res = []
         res_except = []
-        dict = {u'一':1, u'二':2, u'三':3, u'四':4, u'五':5, u'六':6, u'日':7}
+        dict = {u'一': 1, u'二': 2, u'三': 3, u'四': 4, u'五': 5, u'六': 6, u'日': 7}
         for c4 in c3:
             # print(c4)
             try:
@@ -165,7 +166,7 @@ class jw_spider:
                     week.append(int(re.sub(r'第(\d+)周 ', r'\1', rr1)))
                 r2 = re.findall(r'\d+-\d+周', c4)
                 for rr2 in r2:
-                    for i in range(int(re.sub(r'(\d+)-(\d+)周', r'\1', rr2)), int(re.sub(r'(\d+)-(\d+)周', r'\2', rr2))+1):
+                    for i in range(int(re.sub(r'(\d+)-(\d+)周', r'\1', rr2)), int(re.sub(r'(\d+)-(\d+)周', r'\2', rr2)) + 1):
                         week.append(i)
                 r3 = re.findall(r'从第\d+周开始:.周 ', c4)
                 for rr3 in r3:
@@ -177,7 +178,7 @@ class jw_spider:
                     else:
                         mod = -1
                     for i in range(int(re.sub(r'从第(\d+)周开始:.周 ', r'\1', rr3)), end):
-                        if i%2 == mod:
+                        if i % 2 == mod:
                             week.append(i)
                 r4 = re.findall(r' .周', c4)
                 # print(r4)
@@ -191,10 +192,11 @@ class jw_spider:
                     else:
                         mod = -1
                     for i in range(1, end):
-                        if i%2 == mod:
+                        if i % 2 == mod:
                             week.append(i)
                 day = dict[c4[1]]
-                jieshu = [int(re.sub(r'[^\d]+第(\d+)-(\d+)节.+', r'\1', c4)), int(re.sub(r'[^\d]+第(\d+)-(\d+)节.+', r'\2', c4))]
+                jieshu = [int(re.sub(r'[^\d]+第(\d+)-(\d+)节.+', r'\1', c4)),
+                          int(re.sub(r'[^\d]+第(\d+)-(\d+)节.+', r'\2', c4))]
                 c5 = c4.split('周')
                 jiaoshi = c5[len(c5) - 1].strip()
                 res.append([week, day, jieshu, jiaoshi])
@@ -222,17 +224,17 @@ class jw_spider:
             for c in course[0]:
                 if week in c[0]:
                     # print(courses)
-                    for i in range(c[2][0], c[2][1]+1):
+                    for i in range(c[2][0], c[2][1] + 1):
                         # print(courses[c[1]-1][i-1][1])
-                        courses[c[1]-1][i-1][1].append(index)
+                        courses[c[1] - 1][i - 1][1].append(index)
 
                     #     courses[c[1]-1][i-1][2] = 'normal'
                     # courses[c[1]-1][c[2][0]-1][2] = 'start'
                     if len(courses[c[1] - 1][c[2][0] - 1][1]) == 1:
-                        courses[c[1]-1][c[2][0]-1][0] = t[0]
+                        courses[c[1] - 1][c[2][0] - 1][0] = t[0]
                     if (c[2][1] > c[2][0]) and len(courses[c[1] - 1][c[2][0]][1]) == 1:
-                        courses[c[1]-1][c[2][0]][0] = c[3]
-                    if (c[2][1] > c[2][0]+1) and len(courses[c[1] - 1][c[2][0]+1][1]) == 1:
-                        courses[c[1]-1][c[2][0]+1][0] = t[1]
+                        courses[c[1] - 1][c[2][0]][0] = c[3]
+                    if (c[2][1] > c[2][0] + 1) and len(courses[c[1] - 1][c[2][0] + 1][1]) == 1:
+                        courses[c[1] - 1][c[2][0] + 1][0] = t[1]
             index += 1
         return [courses, courses_except]

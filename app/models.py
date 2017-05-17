@@ -5,7 +5,7 @@ from Crypto.Cipher import AES
 from flask_login import UserMixin
 
 from .spider import jw_spider
-from . import db , login_manager
+from . import db, login_manager
 
 
 class User(UserMixin, db.Model):
@@ -22,7 +22,7 @@ class User(UserMixin, db.Model):
     # password_hash = db.Column(db.String(128))
     password = db.Column(db.String(64))
     name = db.Column(db.String(64))
-    ###需要补全，密码要加密
+    # 需要补全，密码要加密
     spd = db.Column(db.PickleType)
     remember_me = db.Column(db.BOOLEAN)
     # spd = jw_spider()
@@ -33,8 +33,8 @@ class User(UserMixin, db.Model):
     courses = db.relationship('Course', backref='stu', lazy='dynamic')
 
     def delete_password(self):
-        self.user_number=None
-        self.password=None
+        self.user_number = None
+        self.password = None
         self.remember_me = False
 
     def get_courses_from_database(self):
@@ -59,11 +59,12 @@ class User(UserMixin, db.Model):
                 db.session.delete(t)
 
         for c in courses:
-            tt = Course(stu=stu, name=c[0], teacher=c[1], place_time=c[2], course_num=c[3], type=c[4], campus=c[5])
+            tt = Course(stu=stu, name=c[0], teacher=c[1], place_time=c[2],
+                        course_num=c[3], type=c[4], campus=c[5])
             db.session.add(tt)
         db.session.commit()
 
-    #暂时用不到
+    # 暂时用不到
     # @property
     # def password(self):
     #     raise AttributeError('password is not a readable attribute')
@@ -76,9 +77,11 @@ class User(UserMixin, db.Model):
     #     return check_password_hash(self.password_hash, password)
     ###
 
+
 @login_manager.user_loader
 def load_user(id):
     return User.query.get(int(id))
+
 
 class Grade(db.Model):
     __tablename__ = 'grades'
@@ -91,6 +94,7 @@ class Grade(db.Model):
     score = db.Column(db.Integer)
     remark = db.Column(db.String(64))
     stu_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+
 
 class Course(db.Model):
     __tablename__ = 'courses'
@@ -106,7 +110,6 @@ class Course(db.Model):
 
 
 class AESCipher():
-
     """
     加密解密方法
     http://stackoverflow.com/questions/12524994

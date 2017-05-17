@@ -1,6 +1,10 @@
-from .. import redis
-from ..models import User, AESCipher
+import datetime
+
 from flask import current_app
+
+from .. import redis
+from ..models import AESCipher, User
+
 
 def set_user_state(openid, state):
     """设置用户状态"""
@@ -27,6 +31,7 @@ def get_user_last_interact_time(openid):
     else:
         return 0
 
+
 def jw_delete(id):
     user = User.query.filter_by(wechat_id=id).first()
     if user is None or user.password is None:
@@ -35,6 +40,7 @@ def jw_delete(id):
         user.delete_password()
         msg = '取消绑定成功'
     return msg
+
 
 def courses_fresh(id):
     user = User.query.filter_by(wechat_id=id).first()
@@ -59,7 +65,7 @@ def courses_fresh(id):
                 msg = '登陆教务系统失败'
                 return msg
         res = user.spd.get_course()
-        if res ==[]:
+        if res == []:
             msg = '获取课程失败'
             return msg
         user.save_courses_into_database(res, stu=user)
