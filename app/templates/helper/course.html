@@ -6,6 +6,7 @@
     {{ super() }}
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/timetable.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/mobiscroll.min.css') }}">
 {#    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">#}
 {#    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">#}
 {% endblock %}
@@ -19,7 +20,7 @@
     <nav aria-label="...">
         <ul class="pager">
             <li class="previous"><a href="{% if week_now < 2 or week_now > 18  %}#{% else %}{{ url_for('helper.timetable', week=week_now-1) }}{% endif %}"><</a></li>
-            <li><a>第{{ week_now }}周</a></li>
+            <li id="week_choose"><a>第{{ week_now }}周</a></li>
 
             <li class="next"><a href="{% if week_now < 1 or week_now > 17  %}#{% else %}{{ url_for('helper.timetable', week=week_now+1) }}{% endif %}">></a></li>
         </ul>
@@ -127,6 +128,10 @@
             {% endfor %}
         </table>
         {% endif %}
+        <div><h4>使用说明：</h4>
+        <ol>点击当前周数按钮可以选择要跳转到的周</ol>
+        <ol>您的课程表不会主动刷新，向服务号后台发送“刷新课程”可以刷新您的课程表</ol>
+        </div>
     </div>
 <div id="myModal" class="modal fade bs-example-modal-sm" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel">
   <div class="modal-dialog modal-sm" role="document" >
@@ -145,59 +150,23 @@
   </div>
 </div>
 
+<ul id="treelist">
+    {% for i in range(1,19) %}<li>第{{ i }}周</li>{% endfor %}
+</ul>
+
 {% endblock %}
 
 {% block scripts %}
     {{ super() }}
-    <script src="{{ url_for('static', filename='js/cal.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/mobiscroll.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/timetable.js') }}"></script>
     <script type="text/javascript">
     var $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
     var message = {{ msg|tojson|safe }};
     var courses = {{ courses|tojson|safe }};
-    </script>
-    <script>
-{#    var patt1 = new RegExp("course[0-9]+");#}
-{#    var patt2 = new RegExp("[0-9]+");#}
-    var patt3 = new RegExp("morning");
-    var patt4 = new RegExp("afternoon");
+{#    #}
     $(document).ready(function () {
-{#        alert(message[0][0]);#}
-        $('div.course').click(function(){
-{#			t1 = patt1.exec($(this).attr("class"));#}
-{#			alert(patt2.exec(t1));#}
-{#            var index = parseInt(patt2.exec(t1));#}
-			$('.modal-title').text('课程详情');
-{#			$('.modal-body').html('<p>课程编号: '+message[index][3]+'<br>课程名称: '+message[index][0]+'<br>教师: '+message[index][1]+'<br>上课地点及时间: <br>'+message[index][2]+'</p>');#}
-{#			$('.modal-body').text(('课程名称: '+message[index][0]+'\n\n教师: '+message[index][1]+'\r\n上课地点及时间: '+message[index][2]));#}
-{#			alert(typeof ($(this).attr("class")));#}
-			var row_cnt;
-			var col_cnt = $(this).parent().prevAll().length-1;
-			if(patt3.test($(this).parent().attr("class"))){
-			    row_cnt = $(this).prevAll().length;
-            }
-            else if(patt4.test($(this).parent().attr("class"))){
-			    row_cnt = $(this).prevAll().length+4;
-            }
-            else{
-			    row_cnt = $(this).prevAll().length+8;
-            }
-            $('div.modal-body').remove();
-
-            for(var i=0; i<courses[col_cnt][row_cnt][1].length; i++){
-                index = courses[col_cnt][row_cnt][1][i];
-                $('div.modal-footer').before('<div class="modal-body">'+'<p>课程编号: '+message[index][3]+'<br>课程名称: '+message[index][0]+'<br>教师: '+message[index][1]+'<br>选课类型: '+message[index][4]+'<br>校区: '+message[index][5]+'<br>上课地点及时间: <br>'+message[index][2]+'</p>'+'</div>');
-            }
-{#			alert(row_cnt+' '+col_cnt);#}
-
-            $('#myModal').modal('show');
-		});
-        $('tr.course_except').click(function () {
-            $('.modal-title').text('课程详情');
-            $('div.modal-body').remove();
-            index = $(this).children().last().text();
-            $('div.modal-footer').before('<div class="modal-body">'+'<p>课程编号: '+message[index][3]+'<br>课程名称: '+message[index][0]+'<br>教师: '+message[index][1]+'<br>选课类型: '+message[index][4]+'<br>校区: '+message[index][5]+'<br>上课地点及时间: <br>'+message[index][2]+'</p>'+'</div>');
-            $('#myModal').modal('show');
-        })
-    })
+        $("input#treelist_dummy").hide();
+    });
     </script>
 {% endblock %}

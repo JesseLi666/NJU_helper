@@ -70,7 +70,7 @@
 		}
 		.td-nobr{
 		overflow: hidden;
-		/*white-space: nowrap;*/
+		word-break: break-all;
 		text-overflow: ellipsis;
 		display: -webkit-box;
 		-webkit-line-clamp: 2;
@@ -85,3 +85,5 @@
 		.text-center {
 		  text-align: center;
 		}
+
+		.mbsc-android-holo .dwv { text-align:left;text-indent:.8em; }

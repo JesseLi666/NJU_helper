@@ -6,7 +6,7 @@ from wtforms import ValidationError
 class JWLoginForm(FlaskForm):
     number = StringField('学号', validators=[Required(), Length(9,9)])
     password = PasswordField('密码', validators=[Required()])
-    site = RadioField('站点', choices=[('0','站点1'), ('1', '站点2')], default=0)
+    site = RadioField('站点', choices=[('0', '站点1'), ('1', '站点2')], default=0)
     submit = SubmitField('登陆')
 
 class wechat_JWLoginForm(FlaskForm):

@@ -55,8 +55,19 @@
             <button id="checkall" class="btn btn-info">全选</button>
             <button id="someSelect" class="btn btn-primary">必修</button>
             <button id="invertSelect" class="btn btn-warning">反选</button>
-            <button id="resultButton" class="btn btn-success">南大算法</button>
-            <button id="resultButton2" class="btn btn-success">标准算法</button>
+
+            <div class="btn-group dropup">
+                <button id="resultButton" class="btn btn-success">南大算法</button>
+                <button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <span class="caret"></span>
+                <span class="sr-only">Toggle Dropdown</span>
+                </button>
+                <ul class="dropdown-menu">
+                    <li id="resultButton2"><a>标准算法</a></li>
+                    <li role="separator" class="divider"></li>
+                    <li id="resultButton3"><a>WES算法</a></li>
+                </ul>
+            </div>
         </div>
     </nav>
     <div class="alert alert-success">
@@ -64,10 +75,13 @@
         <ol>点击“全选”按钮可以选中全部课程，在全部选中情况下点击“全选”则可以取消选中全部课程</ol>
         <ol>点击“必修”会选中课程类型为“通修”、“平台”或“核心”的课程</ol>
         <ol>南大算法得到的GPA=(学分*分数)的总和/学分的总和/20，满分为5</ol>
-        <ol>在标准算法中， 成绩在90-100之间的课程记为4分，成绩在80-89、70-79、60-69、60以下范围内的课程分别记为3、2、1、0分，标准算法得到的GPA=(换算后的分数*学分)的总和/学分的总和，满分为4</ol>
+        <ol>在标准算法中，成绩在90-100之间的课程记为4分，成绩在80-89、70-79、60-69、60以下范围内的课程分别记为3、2、1、0分，标准算法得到的GPA=(换算后的分数*学分)的总和/学分的总和，满分为4</ol>
+        <ol>在WES算法中，成绩在85-100之间的课程记为4分，成绩在75-84、60-74、60以下范围内的课程分别记为3、2、1分，标准算法得到的GPA=(换算后的分数*学分)的总和/学分的总和，满分为4</ol>
+        <ol>如果您对此计算器有何建议，请联系我们</ol>
         <ol>如果在教务系统中某项课程的成绩显示为非数字，如“缺考”、“无成绩”等，则该课程成绩会被转化为0，并且默认不被选中</ol>
-        <ol>点击“新增一门课程”可以新增一门自定义的课程加入计算</ol>
+        <ol>如果您想新增一门要计算的课程，请输入学分和成绩后点击“新增一门课程”，即可新增一门自定义的课程加入计算</ol>
     </div>
+
 {% endblock %}
 
 {% block scripts %}

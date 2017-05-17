@@ -29,7 +29,7 @@ class jw_spider:
                 return '用户名或密码错误'
             return 'success'
         except:
-            return '连接失败'
+            return '连接失败，请尝试更换站点'
 
     def logout(self):
         self.base_url = current_app.config['JW_BASE_URL'][self.site]

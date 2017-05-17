@@ -1,4 +1,4 @@
-$(document).ready(function () {
+$(document).ready({
     var name = $('#name');
     var type = $('#type');
     var weight = $('#weight');
@@ -43,6 +43,28 @@ $(document).ready(function () {
             data:{'g':g},
             success:function (data) {
                 alert('您选中的课程经标准算法计算得到的GPA为：'+data)
+            }
+        });
+        }
+
+    );
+
+    $('#resultButton3').click(function () {
+        var g = new Array();
+        var ch = $('#choose:checked');
+        if (ch.length === 0) return;
+        ch.each(function () {
+            var t_w = $(this).parents("tr").find("span#weight").first().text();
+            var t_g = $(this).parents("tr").find("span#grade").first().text();
+            g.push([t_w, t_g])
+        });
+        $.ajax({
+            type:'post',
+            traditional:true,
+            url:$SCRIPT_ROOT+'/_cal3',
+            data:{'g':g},
+            success:function (data) {
+                alert('您选中的课程经WES算法计算得到的GPA为：'+data)
             }
         });
         }

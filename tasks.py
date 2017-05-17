@@ -84,7 +84,7 @@ def get_cur_week():
         with open("config.json") as f:
             conf = json.load(f)
 
-            day_now = conf.get("week_now", day_now)
+            week_now = conf.get("week_now", week_now)
 
     return week_now
 

@@ -137,3 +137,13 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
+
+#database
+data-dev.sqlite
+data.sqlite
+
+#log
+*.log
+*.log.*
+
+.idea/
